@@ -337,7 +337,7 @@ header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
     </div>
     <div class="field">
       <label>本数 <span class="unit">（本）</span></label>
-      <input type="number" id="s-count" value="1" min="1" inputmode="decimal"
+      <input type="number" id="s-count" placeholder="例：4" min="1" inputmode="decimal"
              oninput="calcSingle()" onchange="calcSingle()">
     </div>
   </div>
@@ -387,7 +387,7 @@ header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
     </div>
     <div class="field">
       <label>本数 <span class="unit">（本）</span></label>
-      <input type="number" id="p-count" value="1" min="1" inputmode="decimal"
+      <input type="number" id="p-count" placeholder="例：4" min="1" inputmode="decimal"
              oninput="calcPillar()" onchange="calcPillar()">
     </div>
 
@@ -655,7 +655,7 @@ function setResult(bigId, smallId, bags, totalKg, useIt) {
   }
 
   bigEl.className = 'bags-big';
-  bigEl.innerHTML = `${roundUp(bags)}<span class="bag-unit">袋</span>`;
+  bigEl.innerHTML = `${bags.toFixed(1)}<span class="bag-unit">袋</span>`;
   smallEl.textContent = `${bags.toFixed(3)}袋　／　${fmtKg(totalKg)}`;
 }
 
