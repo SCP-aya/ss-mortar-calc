@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SSモルタル 使用量計算</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
+  background: #f0f4f8;
+  color: #1a1a2e;
+  min-height: 100vh;
+  font-size: 15px;
+}
+
+/* ===== HEADER ===== */
+header {
+  background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+  color: white;
+  padding: 18px 20px 14px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.04em; }
+header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
+
+/* ===== TABS ===== */
+.tabs {
+  display: flex;
+  background: #1e3a8a;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.tab-btn {
+  flex: 1;
+  padding: 11px 4px 9px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.68rem;
+  font-family: inherit;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  line-height: 1.3;
+}
+.tab-btn.active {
+  color: #fff;
+  border-bottom-color: #60a5fa;
+  background: rgba(255,255,255,0.1);
+  font-weight: 700;
+}
+
+/* ===== PANELS ===== */
+.tab-panel { display: none; padding: 14px 14px 40px; max-width: 600px; margin: 0 auto; }
+.tab-panel.active { display: block; }
+
+/* ===== CARDS ===== */
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+.card-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e40af;
+  margin-bottom: 14px;
+  padding-left: 10px;
+  border-left: 3px solid #3b82f6;
+  letter-spacing: 0.05em;
+}
+
+/* ===== SLEEVE SELECTOR ===== */
+.sleeve-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 0;
+}
+.sleeve-btn {
+  padding: 9px 4px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 9px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  line-height: 1.25;
+}
+.sleeve-btn.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* ===== FORM FIELDS ===== */
+.field { margin-bottom: 13px; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 5px;
+}
+.field label .unit {
+  font-weight: 400;
+  color: #6b7280;
+  font-size: 0.72rem;
+}
+.field input[type="number"],
+.field select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #111827;
+  background: #f9fafb;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='%236b7280' d='M7 10L0 0h14z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  background: white;
+}
+
+/* ===== SECTION DIVIDER ===== */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 13px;
+}
+.section-divider span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+/* ===== RESULT CARD ===== */
+.result-card {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(30,58,138,0.18);
+}
+.result-header {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: white;
+  padding: 13px 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: linear-gradient(160deg, #1e3a8a, #1d4ed8);
+  gap: 1px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+.result-item {
+  background: linear-gradient(160deg, #1e3a8a, #1d4ed8);
+  padding: 16px 10px 18px;
+  text-align: center;
+  transition: opacity 0.2s;
+}
+.result-item.na { opacity: 0.4; }
+
+.result-item .product-name {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* 切り上げ袋数 → 大きく */
+.bags-big {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.bags-big .bag-unit {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-left: 2px;
+  vertical-align: bottom;
+  line-height: 1.6;
+}
+.bags-big.na-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0;
+  line-height: 2.5;
+}
+
+/* 小数点袋数 / kg → 小さく */
+.bags-small {
+  font-size: 0.66rem;
+  color: rgba(255,255,255,0.55);
+  margin-top: 7px;
+  line-height: 1.5;
+}
+
+/* ===== DETAIL CARD ===== */
+.detail-card {
+  background: white;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.detail-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.78rem;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-row .dl { color: #6b7280; }
+.detail-row .dv { font-weight: 600; color: #2563eb; }
+.detail-section {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1e40af;
+  background: #eff6ff;
+  margin: 6px -16px 2px;
+  padding: 4px 16px;
+  letter-spacing: 0.06em;
+}
+.detail-section:first-child { margin-top: -2px; }
+
+/* ===== NOTE ===== */
+.note {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-size: 0.73rem;
+  color: #92400e;
+  margin-top: 12px;
+  line-height: 1.6;
+}
+.note b { color: #78350f; }
+
+/* ===== DESKTOP ===== */
+@media (min-width: 600px) {
+  body { font-size: 16px; }
+  .tab-btn { font-size: 0.8rem; padding: 13px 8px 11px; }
+  header h1 { font-size: 1.4rem; }
+  .field input[type="number"],
+  .field select { font-size: 1.05rem; }
+  .bags-big { font-size: 3.2rem; }
+  .sleeve-btn { font-size: 0.8rem; padding: 10px 6px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SSモルタル 使用量計算</h1>
+  <p>１ヵ所あたりの袋数自動計算</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab(this,'single')">単体注入</button>
+  <button class="tab-btn" onclick="switchTab(this,'pillar')">柱一体注入</button>
+  <button class="tab-btn" onclick="switchTab(this,'renkon')">仕口レンコン</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     単体注入
+══════════════════════════════════════ -->
+<div id="tab-single" class="tab-panel active">
+  <div class="card">
+    <div class="card-title">▪ 条件入力</div>
+
+    <div class="field">
+      <label>スリーブ種別</label>
+      <div class="sleeve-selector">
+        <button class="sleeve-btn active" data-type="NXⅡ"   onclick="selectSleeve(this,'s')">NXⅡ</button>
+        <button class="sleeve-btn"        data-type="UX"     onclick="selectSleeve(this,'s')">UX(SA)</button>
+        <button class="sleeve-btn"        data-type="SU"     onclick="selectSleeve(this,'s')">スリムU</button>
+        <button class="sleeve-btn"        data-type="SX"     onclick="selectSleeve(this,'s')">スリムX</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>使用継手</label>
+      <select id="s-joint" onchange="calcSingle()"></select>
+    </div>
+    <div class="field">
+      <label>本数 <span class="unit">（本）</span></label>
+      <input type="number" id="s-count" value="1" min="1" inputmode="decimal"
+             oninput="calcSingle()" onchange="calcSingle()">
+    </div>
+  </div>
+
+  <div class="result-card">
+    <div class="result-header">■ 使用量（１ヵ所あたり）</div>
+    <div class="result-grid">
+      <div class="result-item" id="s-ssm-box">
+        <div class="product-name">SSモルタル</div>
+        <div class="bags-big" id="s-ssm-big">—</div>
+        <div class="bags-small" id="s-ssm-small"></div>
+      </div>
+      <div class="result-item" id="s-120n-box">
+        <div class="product-name">120N / 150N</div>
+        <div class="bags-big" id="s-120n-big">—</div>
+        <div class="bags-small" id="s-120n-small"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>計算根拠：</b>袋数＝本数×継手グラウト量÷袋容量<br>
+    SSM：1袋＝15kg　／　120N・150N：1袋＝25kg
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     柱一体注入
+══════════════════════════════════════ -->
+<div id="tab-pillar" class="tab-panel">
+  <div class="card">
+    <div class="card-title">▪ 条件入力</div>
+
+    <div class="field">
+      <label>スリーブ種別</label>
+      <div class="sleeve-selector">
+        <button class="sleeve-btn active" data-type="NXⅡ" onclick="selectSleeve(this,'p')">NXⅡ</button>
+        <button class="sleeve-btn"        data-type="UX"   onclick="selectSleeve(this,'p')">UX(SA)</button>
+        <button class="sleeve-btn"        data-type="SU"   onclick="selectSleeve(this,'p')">スリムU</button>
+        <button class="sleeve-btn"        data-type="SX"   onclick="selectSleeve(this,'p')">スリムX</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>使用継手</label>
+      <select id="p-joint" onchange="calcPillar()"></select>
+    </div>
+    <div class="field">
+      <label>本数 <span class="unit">（本）</span></label>
+      <input type="number" id="p-count" value="1" min="1" inputmode="decimal"
+             oninput="calcPillar()" onchange="calcPillar()">
+    </div>
+
+    <div class="section-divider"><span>目 地</span></div>
+
+    <div class="field">
+      <label>目地サイズ　Dx <span class="unit">（mm）</span></label>
+      <input type="number" id="p-jw" value="1000" inputmode="decimal"
+             oninput="calcPillar()" onchange="calcPillar()">
+    </div>
+    <div class="field">
+      <label>目地サイズ　Dy <span class="unit">（mm）</span></label>
+      <input type="number" id="p-jh" value="1000" inputmode="decimal"
+             oninput="calcPillar()" onchange="calcPillar()">
+    </div>
+    <div class="field">
+      <label>目地厚 <span class="unit">（mm）</span></label>
+      <input type="number" id="p-jt" value="20" inputmode="decimal"
+             oninput="calcPillar()" onchange="calcPillar()">
+    </div>
+  </div>
+
+  <div class="result-card">
+    <div class="result-header">■ 使用量（１ヵ所あたり）</div>
+    <div class="result-grid">
+      <div class="result-item" id="p-ssm-box">
+        <div class="product-name">SSモルタル</div>
+        <div class="bags-big" id="p-ssm-big">—</div>
+        <div class="bags-small" id="p-ssm-small"></div>
+      </div>
+      <div class="result-item" id="p-120n-box">
+        <div class="product-name">120N / 150N</div>
+        <div class="bags-big" id="p-120n-big">—</div>
+        <div class="bags-small" id="p-120n-small"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="p-detail" class="detail-card" style="display:none">
+    <div class="detail-title">▪ 内訳</div>
+    <div id="p-detail-rows"></div>
+  </div>
+
+  <div class="note">
+    <b>計算根拠：</b>袋数＝（継手分＋目地分）÷袋容量<br>
+    目地：SSM 2,100 kg/m³　／　120N・150N 2,325 kg/m³<br>
+    SSM：1袋＝15kg　／　120N・150N：1袋＝25kg
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     仕口レンコン
+══════════════════════════════════════ -->
+<div id="tab-renkon" class="tab-panel">
+  <div class="card">
+    <div class="card-title">▪ 条件入力</div>
+    <div class="field">
+      <label>仕口高さ(H) <span class="unit">（mm）</span></label>
+      <input type="number" id="r-h" placeholder="例：1340" inputmode="decimal"
+             oninput="calcRenkon()" onchange="calcRenkon()">
+    </div>
+
+    <div class="section-divider"><span>シース</span></div>
+
+    <div class="field">
+      <label>シース径 <span class="unit">（mm）</span></label>
+      <input type="number" id="r-sheath" placeholder="例：62" inputmode="decimal"
+             oninput="calcRenkon()" onchange="calcRenkon()">
+    </div>
+    <div class="field">
+      <label>鉄筋径</label>
+      <select id="r-rebar" onchange="calcRenkon()"></select>
+    </div>
+    <div class="field">
+      <label>シース本数 <span class="unit">（本）</span></label>
+      <input type="number" id="r-count" placeholder="例：20" inputmode="decimal"
+             oninput="calcRenkon()" onchange="calcRenkon()">
+    </div>
+
+    <div class="section-divider"><span>目 地</span></div>
+
+    <div class="field">
+      <label>目地サイズ　Dx <span class="unit">（mm）</span></label>
+      <input type="number" id="r-jw" value="1000" inputmode="decimal"
+             oninput="calcRenkon()" onchange="calcRenkon()">
+    </div>
+    <div class="field">
+      <label>目地サイズ　Dy <span class="unit">（mm）</span></label>
+      <input type="number" id="r-jh" value="1000" inputmode="decimal"
+             oninput="calcRenkon()" onchange="calcRenkon()">
+    </div>
+    <div class="field">
+      <label>目地厚 <span class="unit">（mm）</span></label>
+      <input type="number" id="r-jt" value="20" inputmode="decimal"
+             oninput="calcRenkon()" onchange="calcRenkon()">
+    </div>
+  </div>
+
+  <div class="result-card">
+    <div class="result-header">■ 使用量（１ヵ所あたり）</div>
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="product-name">SSモルタル</div>
+        <div class="bags-big" id="r-ssm-big">—</div>
+        <div class="bags-small" id="r-ssm-small"></div>
+      </div>
+      <div class="result-item">
+        <div class="product-name">120N / 150N</div>
+        <div class="bags-big" id="r-120n-big">—</div>
+        <div class="bags-small" id="r-120n-small"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="r-detail" class="detail-card" style="display:none">
+    <div class="detail-title">▪ 内訳</div>
+    <div id="r-detail-rows"></div>
+  </div>
+
+  <div class="note">
+    <b>計算根拠：</b>袋数＝（シース分＋目地分）÷袋容量<br>
+    シース・目地：SSM 2,100 kg/m³　／　120N・150N 2,325 kg/m³<br>
+    SSM：1袋＝15kg　／　120N・150N：1袋＝25kg<br>
+    <b>※シース内モルタル量：</b>（シース断面積−鉄筋公称断面積）×H×本数 に加え、鉄筋を差し引かないシース1本分の体積を加算しています。
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// マスターデータ
+// ═══════════════════════════════════════════════
+
+// 継手マスター [継手名, SSM(kg/本), 120N(kg/本)]
+const JOINTS = [
+  ['5NXⅡ',    0.42, 0.47],
+  ['6NXⅡ',    0.54, 0.60],
+  ['7NXⅡ',    0.68, 0.75],
+  ['8NXⅡ',    0.79, 0.88],
+  ['9NXⅡ',    1.01, 1.12],
+  ['10NXⅡ',   1.22, 1.34],
+  ['11NXⅡ',   0,    1.69],
+  ['12NXⅡ',   0,    2.01],
+  ['13NXⅡ',   0,    2.42],
+  ['16NXⅡ',   0,    4.11],
+  ['5UX(SA)',  0.51, 0],
+  ['6UX(SA)',  0.68, 0],
+  ['7UX(SA)',  0.87, 0.96],
+  ['8UX(SA)',  1.14, 1.26],
+  ['9UX(SA)',  1.44, 1.59],
+  ['10UX(SA)', 1.59, 1.75],
+  ['11UX(SA)', 1.96, 2.17],
+  ['12UX(SA)', 2.40, 2.66],
+  ['13UX(SA)', 3.13, 3.46],
+  ['S5U',  0.28, 0],
+  ['S6U',  0.35, 0],
+  ['S7U',  0.44, 0],
+  ['S8U',  0.47, 0.52],
+  ['S9U',  0.62, 0.70],
+  ['S10U', 0.82, 0.93],
+  ['S11U', 1.06, 1.21],
+  ['S12U', 1.42, 1.61],
+  ['S13U', 1.81, 2.06],
+  ['S16U', 2.93, 3.34],
+  ['S9X',  0, 0.65],
+  ['S10X', 0, 0.85],
+  ['S11X', 0, 1.06],
+  ['S12X', 0, 1.37],
+  ['S13X', 0, 1.61],
+  ['S16X', 0, 2.80],
+];
+
+// スリーブ種別フィルター
+const SLEEVE_FILTER = {
+  'NXⅡ': j => j[0].endsWith('NXⅡ'),
+  'UX':   j => j[0].includes('UX(SA)'),
+  'SU':   j => /^S\d+U$/.test(j[0]),
+  'SX':   j => /^S\d+X$/.test(j[0]),
+};
+
+// 鉄筋マスター [径名, 公称断面積(mm²)]
+const REBARS = [
+  ['D16', 198.6],
+  ['D19', 286.5],
+  ['D22', 387.1],
+  ['D25', 506.7],
+  ['D29', 642.4],
+  ['D32', 794.2],
+  ['D35', 956.6],
+  ['D38', 1140],
+  ['D41', 1340],
+  ['D51', 2027],
+];
+
+// ═══════════════════════════════════════════════
+// スリーブ種別選択
+// ═══════════════════════════════════════════════
+function selectSleeve(btn, prefix) {
+  // ボタン切り替え
+  btn.closest('.sleeve-selector').querySelectorAll('.sleeve-btn')
+    .forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // ドロップダウン更新
+  updateJointDropdown(prefix, btn.dataset.type);
+}
+
+function updateJointDropdown(prefix, type) {
+  const sel = document.getElementById(prefix + '-joint');
+  const prevVal = sel.value;
+  sel.innerHTML = '';
+  JOINTS.filter(SLEEVE_FILTER[type]).forEach(([name]) => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    sel.appendChild(o);
+  });
+  // 前の選択を復元（同種ならそのまま）
+  if ([...sel.options].some(o => o.value === prevVal)) sel.value = prevVal;
+  // 再計算
+  if (prefix === 's') calcSingle();
+  else calcPillar();
+}
+
+// ═══════════════════════════════════════════════
+// 初期化
+// ═══════════════════════════════════════════════
+function initDropdowns() {
+  updateJointDropdown('s', 'NXⅡ');
+  updateJointDropdown('p', 'NXⅡ');
+
+  const rs = document.getElementById('r-rebar');
+  REBARS.forEach(([name]) => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    rs.appendChild(o);
+  });
+  rs.value = 'D38';
+}
+
+// ═══════════════════════════════════════════════
+// ユーティリティ
+// ═══════════════════════════════════════════════
+function getJoint(name) { return JOINTS.find(j => j[0] === name); }
+function getRebar(name) { return REBARS.find(r => r[0] === name); }
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function roundUp(n) { return Math.ceil(n); }
+function fmtKg(n) { return n.toFixed(3) + ' kg'; }
+
+/**
+ * 結果を表示する
+ * bigId  : 切り上げ袋数を大きく表示する要素
+ * smallId: 小数袋数 / kg を小さく表示する要素
+ * bags   : 計算袋数（小数）
+ * totalKg: 合計グラウト量(kg)
+ * useIt  : このプロダクトが使用可能か
+ */
+function setResult(bigId, smallId, bags, totalKg, useIt) {
+  const bigEl   = document.getElementById(bigId);
+  const smallEl = document.getElementById(smallId);
+
+  if (!useIt) {
+    // 使用不可
+    bigEl.className = 'bags-big na-text';
+    bigEl.textContent = '使用不可';
+    smallEl.textContent = '';
+    return;
+  }
+
+  bigEl.className = 'bags-big';
+  bigEl.innerHTML = `${roundUp(bags)}<span class="bag-unit">袋</span>`;
+  smallEl.textContent = `${bags.toFixed(3)}袋　／　${fmtKg(totalKg)}`;
+}
+
+function setBlank(bigId, smallId) {
+  document.getElementById(bigId).className = 'bags-big';
+  document.getElementById(bigId).textContent = '—';
+  document.getElementById(smallId).textContent = '';
+}
+
+function detailRow(label, val) {
+  return `<div class="detail-row"><span class="dl">${label}</span><span class="dv">${val}</span></div>`;
+}
+function detailSection(title) {
+  return `<div class="detail-section">▪ ${title}</div>`;
+}
+function fmtM3(n) { return n.toFixed(6) + ' m³'; }
+
+// ═══════════════════════════════════════════════
+// 単体注入
+// ═══════════════════════════════════════════════
+function calcSingle() {
+  const joint = getJoint(document.getElementById('s-joint').value);
+  const count = v('s-count');
+  if (!joint || count <= 0) {
+    setBlank('s-ssm-big', 's-ssm-small');
+    setBlank('s-120n-big', 's-120n-small');
+    return;
+  }
+
+  const [, ssmPer, n120Per] = joint;
+  const useSsm  = ssmPer  > 0;
+  const use120n = n120Per > 0;
+
+  const ssmKg   = count * ssmPer;
+  const n120Kg  = count * n120Per;
+  const ssmBags  = ssmKg  / 15;
+  const n120Bags = n120Kg / 25;
+
+  setResult('s-ssm-big',  's-ssm-small',  ssmBags,  ssmKg,  useSsm);
+  setResult('s-120n-big', 's-120n-small', n120Bags, n120Kg, use120n);
+
+  document.getElementById('s-ssm-box').className  = 'result-item' + (!useSsm  ? ' na' : '');
+  document.getElementById('s-120n-box').className = 'result-item' + (!use120n ? ' na' : '');
+}
+
+// ═══════════════════════════════════════════════
+// 柱一体注入
+// ═══════════════════════════════════════════════
+function calcPillar() {
+  const joint = getJoint(document.getElementById('p-joint').value);
+  const count = v('p-count');
+  const jw = v('p-jw'), jh = v('p-jh'), jt = v('p-jt');
+  if (!joint || count <= 0) {
+    setBlank('p-ssm-big', 'p-ssm-small');
+    setBlank('p-120n-big', 'p-120n-small');
+    document.getElementById('p-detail').style.display = 'none';
+    return;
+  }
+
+  const [, ssmPer, n120Per] = joint;
+  const useSsm  = ssmPer  > 0;
+  const use120n = n120Per > 0;
+
+  // 継手分 (kg)
+  const jSsm  = count * ssmPer;
+  const j120n = count * n120Per;
+
+  // 目地分 (mm³ → m³ → kg)
+  const volM3  = jw * jh * jt / 1e9;
+  const mjSsm  = volM3 * 2100;
+  const mj120n = volM3 * 2325;
+
+  // 合計（使用製品のみ）
+  const totSsmKg  = useSsm  ? jSsm  + mjSsm  : 0;
+  const tot120nKg = use120n ? j120n + mj120n  : 0;
+  const ssmBags   = totSsmKg  / 15;
+  const n120Bags  = tot120nKg / 25;
+
+  setResult('p-ssm-big',  'p-ssm-small',  ssmBags,  totSsmKg,  useSsm);
+  setResult('p-120n-big', 'p-120n-small', n120Bags, tot120nKg, use120n);
+
+  document.getElementById('p-ssm-box').className  = 'result-item' + (!useSsm  ? ' na' : '');
+  document.getElementById('p-120n-box').className = 'result-item' + (!use120n ? ' na' : '');
+
+  // 内訳カード
+  const hasMj  = jw > 0 && jh > 0 && jt > 0;
+  const detDiv = document.getElementById('p-detail');
+  if (useSsm || use120n) {
+    let rows = '';
+    // 継手分
+    rows += detailSection('継手');
+    if (useSsm)  rows += detailRow('SSM',  fmtKg(jSsm));
+    if (use120n) rows += detailRow('120N', fmtKg(j120n));
+    // 目地分
+    rows += detailSection('目地');
+    rows += detailRow('体積', fmtM3(volM3));
+    if (useSsm)  rows += detailRow('SSM',  fmtKg(mjSsm));
+    if (use120n) rows += detailRow('120N', fmtKg(mj120n));
+    // 合計
+    rows += detailSection('合計');
+    if (useSsm)  rows += detailRow('SSM',  fmtKg(totSsmKg));
+    if (use120n) rows += detailRow('120N', fmtKg(tot120nKg));
+    document.getElementById('p-detail-rows').innerHTML = rows;
+    detDiv.style.display = 'block';
+  } else {
+    detDiv.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// 仕口レンコン注入
+// ═══════════════════════════════════════════════
+function calcRenkon() {
+  const H       = v('r-h');
+  const sheathD = v('r-sheath');
+  const rebar   = getRebar(document.getElementById('r-rebar').value);
+  const count   = v('r-count');
+  const jw = v('r-jw'), jh = v('r-jh'), jt = v('r-jt');
+
+  if (!rebar || H <= 0 || sheathD <= 0 || count <= 0) {
+    setBlank('r-ssm-big', 'r-ssm-small');
+    setBlank('r-120n-big', 'r-120n-small');
+    document.getElementById('r-detail').style.display = 'none';
+    return;
+  }
+
+  const rebarArea = rebar[1]; // mm²
+
+  // シース断面積（Excel準拠：π=3.14）
+  const sheathGrossArea = (sheathD / 2) ** 2 * 3.14;          // mm²
+  const grossPerSheath  = sheathGrossArea * H / 1e9;           // m³（1本 総）
+  const netPerSheath    = (sheathGrossArea - rebarArea) * H / 1e9; // m³（1本 純）
+  const totalNet        = netPerSheath * count;                // m³（全本数 純）
+
+  // Excel数式：(総体積1本 + 全本数純体積) × 密度
+  const sheathSsm  = (grossPerSheath + totalNet) * 2100;  // kg
+  const sheath120n = (grossPerSheath + totalNet) * 2325;  // kg
+
+  // 目地分
+  const volM3  = jw * jh * jt / 1e9;
+  const mjSsm  = volM3 * 2100;
+  const mj120n = volM3 * 2325;
+
+  const totSsmKg  = sheathSsm  + mjSsm;
+  const tot120nKg = sheath120n + mj120n;
+  const ssmBags   = totSsmKg  / 15;
+  const n120Bags  = tot120nKg / 25;
+
+  setResult('r-ssm-big',  'r-ssm-small',  ssmBags,  totSsmKg,  true);
+  setResult('r-120n-big', 'r-120n-small', n120Bags, tot120nKg, true);
+
+  // 内訳カード
+  const hasMj = jw > 0 && jh > 0 && jt > 0;
+  const sheathVol = grossPerSheath + totalNet; // 計算に使用した体積
+  let rows = '';
+  // シース分
+  rows += detailSection('シース');
+  rows += detailRow('体積', fmtM3(sheathVol));
+  rows += detailRow('SSM',  fmtKg(sheathSsm));
+  rows += detailRow('120N', fmtKg(sheath120n));
+  // 目地分
+  rows += detailSection('目地');
+  rows += detailRow('体積', fmtM3(volM3));
+  rows += detailRow('SSM',  fmtKg(mjSsm));
+  rows += detailRow('120N', fmtKg(mj120n));
+  // 合計
+  rows += detailSection('合計');
+  rows += detailRow('SSM',  fmtKg(totSsmKg));
+  rows += detailRow('120N', fmtKg(tot120nKg));
+  document.getElementById('r-detail-rows').innerHTML = rows;
+  document.getElementById('r-detail').style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════
+// タブ切り替え
+// ═══════════════════════════════════════════════
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════════
+// 起動
+// ═══════════════════════════════════════════════
+initDropdowns();
+</script>
+</body>
+</html>
