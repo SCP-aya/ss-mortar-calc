@@ -312,6 +312,7 @@ header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
   <button class="tab-btn active" onclick="switchTab(this,'single')">単体注入</button>
   <button class="tab-btn" onclick="switchTab(this,'pillar')">柱一体注入</button>
   <button class="tab-btn" onclick="switchTab(this,'renkon')">仕口レンコン</button>
+  <button class="tab-btn" onclick="switchTab(this,'moji')">目地部</button>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -325,7 +326,7 @@ header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
       <label>スリーブ種別</label>
       <div class="sleeve-selector">
         <button class="sleeve-btn active" data-type="NXⅡ"   onclick="selectSleeve(this,'s')">NXⅡ</button>
-        <button class="sleeve-btn"        data-type="UX"     onclick="selectSleeve(this,'s')">UX(SA)</button>
+        <button class="sleeve-btn"        data-type="UX"     onclick="selectSleeve(this,'s')">UX</button>
         <button class="sleeve-btn"        data-type="SU"     onclick="selectSleeve(this,'s')">スリムU</button>
         <button class="sleeve-btn"        data-type="SX"     onclick="selectSleeve(this,'s')">スリムX</button>
       </div>
@@ -351,7 +352,7 @@ header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
         <div class="bags-small" id="s-ssm-small"></div>
       </div>
       <div class="result-item" id="s-120n-box">
-        <div class="product-name">120N / 150N</div>
+        <div class="product-name" id="s-n-label">120N / 150N</div>
         <div class="bags-big" id="s-120n-big">—</div>
         <div class="bags-small" id="s-120n-small"></div>
       </div>
@@ -375,7 +376,7 @@ header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
       <label>スリーブ種別</label>
       <div class="sleeve-selector">
         <button class="sleeve-btn active" data-type="NXⅡ" onclick="selectSleeve(this,'p')">NXⅡ</button>
-        <button class="sleeve-btn"        data-type="UX"   onclick="selectSleeve(this,'p')">UX(SA)</button>
+        <button class="sleeve-btn"        data-type="UX"   onclick="selectSleeve(this,'p')">UX</button>
         <button class="sleeve-btn"        data-type="SU"   onclick="selectSleeve(this,'p')">スリムU</button>
         <button class="sleeve-btn"        data-type="SX"   onclick="selectSleeve(this,'p')">スリムX</button>
       </div>
@@ -419,7 +420,7 @@ header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
         <div class="bags-small" id="p-ssm-small"></div>
       </div>
       <div class="result-item" id="p-120n-box">
-        <div class="product-name">120N / 150N</div>
+        <div class="product-name" id="p-n-label">120N / 150N</div>
         <div class="bags-big" id="p-120n-big">—</div>
         <div class="bags-small" id="p-120n-small"></div>
       </div>
@@ -515,55 +516,130 @@ header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     目地部
+══════════════════════════════════════ -->
+<div id="tab-moji" class="tab-panel">
+  <div class="card">
+    <div class="card-title">▪ 条件入力</div>
+    <div class="field">
+      <label>目地サイズ　Dx <span class="unit">（mm）</span></label>
+      <input type="number" id="m-jw" value="1000" inputmode="decimal"
+             oninput="calcMoji()" onchange="calcMoji()">
+    </div>
+    <div class="field">
+      <label>目地サイズ　Dy <span class="unit">（mm）</span></label>
+      <input type="number" id="m-jh" value="1000" inputmode="decimal"
+             oninput="calcMoji()" onchange="calcMoji()">
+    </div>
+    <div class="field">
+      <label>目地厚 <span class="unit">（mm）</span></label>
+      <input type="number" id="m-jt" value="20" inputmode="decimal"
+             oninput="calcMoji()" onchange="calcMoji()">
+    </div>
+    <div class="field">
+      <label>目地数 <span class="unit">（ヵ所）</span></label>
+      <input type="number" id="m-count" value="1" min="1" inputmode="decimal"
+             oninput="calcMoji()" onchange="calcMoji()">
+    </div>
+  </div>
+
+  <div class="result-card">
+    <div class="result-header">■ 使用量（合計）</div>
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="product-name">SSモルタル</div>
+        <div class="bags-big" id="m-ssm-big">—</div>
+        <div class="bags-small" id="m-ssm-small"></div>
+      </div>
+      <div class="result-item">
+        <div class="product-name">120N / 150N</div>
+        <div class="bags-big" id="m-120n-big">—</div>
+        <div class="bags-small" id="m-120n-small"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="m-detail" class="detail-card" style="display:none">
+    <div class="detail-title">▪ 内訳</div>
+    <div id="m-detail-rows"></div>
+  </div>
+
+  <div class="note">
+    <b>計算根拠：</b>袋数＝目地体積×密度÷袋容量<br>
+    SSM 2,100 kg/m³　／　120N・150N 2,325 kg/m³<br>
+    SSM：1袋＝15kg　／　120N・150N：1袋＝25kg
+  </div>
+</div>
+
+
 <script>
 // ═══════════════════════════════════════════════
 // マスターデータ
 // ═══════════════════════════════════════════════
 
-// 継手マスター [継手名, SSM(kg/本), 120N(kg/本)]
+// 継手マスター [継手名, SSM(kg/本), 120N(kg/本), 150N(kg/本)]
 const JOINTS = [
-  ['5NXⅡ',    0.42, 0.47],
-  ['6NXⅡ',    0.54, 0.60],
-  ['7NXⅡ',    0.68, 0.75],
-  ['8NXⅡ',    0.79, 0.88],
-  ['9NXⅡ',    1.01, 1.12],
-  ['10NXⅡ',   1.22, 1.34],
-  ['11NXⅡ',   0,    1.69],
-  ['12NXⅡ',   0,    2.01],
-  ['13NXⅡ',   0,    2.42],
-  ['16NXⅡ',   0,    4.11],
-  ['5UX(SA)',  0.51, 0],
-  ['6UX(SA)',  0.68, 0],
-  ['7UX(SA)',  0.87, 0.96],
-  ['8UX(SA)',  1.14, 1.26],
-  ['9UX(SA)',  1.44, 1.59],
-  ['10UX(SA)', 1.59, 1.75],
-  ['11UX(SA)', 1.96, 2.17],
-  ['12UX(SA)', 2.40, 2.66],
-  ['13UX(SA)', 3.13, 3.46],
-  ['S5U',  0.28, 0],
-  ['S6U',  0.35, 0],
-  ['S7U',  0.44, 0],
-  ['S8U',  0.47, 0.52],
-  ['S9U',  0.62, 0.70],
-  ['S10U', 0.82, 0.93],
-  ['S11U', 1.06, 1.21],
-  ['S12U', 1.42, 1.61],
-  ['S13U', 1.81, 2.06],
-  ['S16U', 2.93, 3.34],
-  ['S9X',  0, 0.65],
-  ['S10X', 0, 0.85],
-  ['S11X', 0, 1.06],
-  ['S12X', 0, 1.37],
-  ['S13X', 0, 1.61],
-  ['S16X', 0, 2.80],
+  // NXⅡ
+  ['5NXⅡ',    0.42, 0.47, null],
+  ['6NXⅡ',    0.54, 0.60, null],
+  ['7NXⅡ',    0.68, 0.75, null],
+  ['8NXⅡ',    0.79, 0.88, null],
+  ['9NXⅡ',    1.01, 1.12, null],
+  ['10NXⅡ',   1.22, 1.34, null],
+  ['11NXⅡ',   null, 1.69, null],
+  ['12NXⅡ',   null, 2.01, null],
+  ['13NXⅡ',   null, 2.42, null],
+  ['16NXⅡ',   null, 4.11, null],
+  // UX
+  ['5UX',          0.51, 0.57, 0.57],
+  ['6UX',          0.68, 0.75, 0.75],
+  ['7UX',          0.87, 0.96, 0.96],
+  ['8UX',          1.14, 1.26, 1.26],
+  ['9UX',          1.44, 1.59, 1.59],
+  ['10UX',         1.59, 1.75, 1.75],
+  ['11UX',         1.96, 2.17, 2.17],
+  ['12UX',         2.40, 2.66, 2.66],
+  ['13UX',         3.13, 3.46, 3.46],
+  ['7UX(590/685)',  null, 0.98, 0.98],
+  ['8UX(590/685)',  null, 1.26, 1.26],
+  ['9UX(590/685)',  null, 1.59, 1.59],
+  ['10UX(590/685)', null, 1.75, 1.75],
+  ['11UX(590/685)', null, 2.17, 2.17],
+  ['12UX(590/685)', null, 2.66, 2.66],
+  ['13UX(590/685)', null, 3.46, 3.46],
+  // スリムU
+  ['S5U',           0.28, 0.31, null],
+  ['S6U',           0.35, 0.39, null],
+  ['S7U',           0.44, 0.48, null],
+  ['S8U',           0.47, 0.52, null],
+  ['S9U',           0.62, 0.70, null],
+  ['S10U',          0.82, 0.93, null],
+  ['S11U',          1.06, 1.21, null],
+  ['S12U',          1.42, 1.61, null],
+  ['S13U',          1.81, 2.06, null],
+  ['S16U',          2.93, 3.34, null],
+  ['S8U(590/685)',  null, 0.52, 0.52],
+  ['S9U(590/685)',  null, 0.70, 0.70],
+  ['S10U(590/685)', null, 0.93, 0.93],
+  ['S11U(590/685)', null, 1.21, 1.21],
+  ['S12U(590/685)', null, 1.61, 1.61],
+  ['S13U(590/685)', null, 2.06, 2.06],
+  ['S16U(590/685)', null, 3.34, 3.34],
+  // スリムX
+  ['S9X',  null, 0.65, 0.65],
+  ['S10X', null, 0.85, 0.85],
+  ['S11X', null, 1.06, 1.06],
+  ['S12X', null, 1.37, 1.37],
+  ['S13X', null, 1.61, 1.61],
+  ['S16X', null, 2.80, 2.80],
 ];
 
 // スリーブ種別フィルター
 const SLEEVE_FILTER = {
   'NXⅡ': j => j[0].endsWith('NXⅡ'),
-  'UX':   j => j[0].includes('UX(SA)'),
-  'SU':   j => /^S\d+U$/.test(j[0]),
+  'UX':   j => j[0].includes('UX') && !j[0].startsWith('S'),
+  'SU':   j => /^S\d+U/.test(j[0]),
   'SX':   j => /^S\d+X$/.test(j[0]),
 };
 
@@ -685,20 +761,23 @@ function calcSingle() {
     return;
   }
 
-  const [, ssmPer, n120Per] = joint;
-  const useSsm  = ssmPer  > 0;
-  const use120n = n120Per > 0;
+  const [, ssmPer, n120Per, n150Per] = joint;
+  const useSsm  = ssmPer  != null && ssmPer  > 0;
+  const use120n = n120Per != null && n120Per > 0;
+  const use150n = n150Per != null && n150Per > 0;
+  const useN    = use120n || use150n;
 
-  const ssmKg   = count * ssmPer;
-  const n120Kg  = count * n120Per;
+  const ssmKg   = useSsm ? count * ssmPer  : 0;
+  const n120Kg  = useN   ? count * (n120Per || n150Per) : 0;
   const ssmBags  = ssmKg  / 15;
   const n120Bags = n120Kg / 25;
 
+  setNLabel('s', use120n, use150n);
   setResult('s-ssm-big',  's-ssm-small',  ssmBags,  ssmKg,  useSsm);
-  setResult('s-120n-big', 's-120n-small', n120Bags, n120Kg, use120n);
+  setResult('s-120n-big', 's-120n-small', n120Bags, n120Kg, useN);
 
-  document.getElementById('s-ssm-box').className  = 'result-item' + (!useSsm  ? ' na' : '');
-  document.getElementById('s-120n-box').className = 'result-item' + (!use120n ? ' na' : '');
+  document.getElementById('s-ssm-box').className  = 'result-item' + (!useSsm ? ' na' : '');
+  document.getElementById('s-120n-box').className = 'result-item' + (!useN   ? ' na' : '');
 }
 
 // ═══════════════════════════════════════════════
@@ -715,13 +794,15 @@ function calcPillar() {
     return;
   }
 
-  const [, ssmPer, n120Per] = joint;
-  const useSsm  = ssmPer  > 0;
-  const use120n = n120Per > 0;
+  const [, ssmPer, n120Per, n150Per] = joint;
+  const useSsm  = ssmPer  != null && ssmPer  > 0;
+  const use120n = n120Per != null && n120Per > 0;
+  const use150n = n150Per != null && n150Per > 0;
+  const useN    = use120n || use150n;
 
   // 継手分 (kg)
-  const jSsm  = count * ssmPer;
-  const j120n = count * n120Per;
+  const jSsm  = useSsm ? count * ssmPer : 0;
+  const j120n = useN   ? count * (n120Per || n150Per) : 0;
 
   // 目地分 (mm³ → m³ → kg)
   const volM3  = jw * jh * jt / 1e9;
@@ -729,16 +810,17 @@ function calcPillar() {
   const mj120n = volM3 * 2325;
 
   // 合計（使用製品のみ）
-  const totSsmKg  = useSsm  ? jSsm  + mjSsm  : 0;
-  const tot120nKg = use120n ? j120n + mj120n  : 0;
+  const totSsmKg  = useSsm ? jSsm  + mjSsm  : 0;
+  const tot120nKg = useN   ? j120n + mj120n  : 0;
   const ssmBags   = totSsmKg  / 15;
   const n120Bags  = tot120nKg / 25;
 
+  setNLabel('p', use120n, use150n);
   setResult('p-ssm-big',  'p-ssm-small',  ssmBags,  totSsmKg,  useSsm);
-  setResult('p-120n-big', 'p-120n-small', n120Bags, tot120nKg, use120n);
+  setResult('p-120n-big', 'p-120n-small', n120Bags, tot120nKg, useN);
 
-  document.getElementById('p-ssm-box').className  = 'result-item' + (!useSsm  ? ' na' : '');
-  document.getElementById('p-120n-box').className = 'result-item' + (!use120n ? ' na' : '');
+  document.getElementById('p-ssm-box').className  = 'result-item' + (!useSsm ? ' na' : '');
+  document.getElementById('p-120n-box').className = 'result-item' + (!useN   ? ' na' : '');
 
   // 内訳カード
   const hasMj  = jw > 0 && jh > 0 && jt > 0;
@@ -827,6 +909,57 @@ function calcRenkon() {
   rows += detailRow('120N', fmtKg(tot120nKg));
   document.getElementById('r-detail-rows').innerHTML = rows;
   document.getElementById('r-detail').style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════
+// N系ラベル更新
+// ═══════════════════════════════════════════════
+function setNLabel(prefix, use120n, use150n) {
+  const label = (use120n && use150n) ? '120N / 150N'
+              : use120n ? '120N'
+              : use150n ? '150N'
+              : '120N / 150N';
+  const el = document.getElementById(prefix + '-n-label');
+  if (el) el.textContent = label;
+}
+
+// ═══════════════════════════════════════════════
+// 目地部
+// ═══════════════════════════════════════════════
+function calcMoji() {
+  const jw = v('m-jw'), jh = v('m-jh'), jt = v('m-jt');
+  const count = v('m-count') || 1;
+
+  if (jw <= 0 || jh <= 0 || jt <= 0) {
+    setBlank('m-ssm-big', 'm-ssm-small');
+    setBlank('m-120n-big', 'm-120n-small');
+    document.getElementById('m-detail').style.display = 'none';
+    return;
+  }
+
+  const volM3   = jw * jh * jt / 1e9;
+  const totVol  = volM3 * count;
+  const ssmKg   = totVol * 2100;
+  const n120Kg  = totVol * 2325;
+  const ssmBags  = ssmKg  / 15;
+  const n120Bags = n120Kg / 25;
+
+  setResult('m-ssm-big',  'm-ssm-small',  ssmBags,  ssmKg,  true);
+  setResult('m-120n-big', 'm-120n-small', n120Bags, n120Kg, true);
+
+  let rows = '';
+  rows += detailSection('目地（1ヵ所）');
+  rows += detailRow('体積', fmtM3(volM3));
+  rows += detailRow('SSM', fmtKg(volM3 * 2100));
+  rows += detailRow('120N / 150N', fmtKg(volM3 * 2325));
+  if (count > 1) {
+    rows += detailSection('合計（' + count + 'ヵ所）');
+    rows += detailRow('体積', fmtM3(totVol));
+    rows += detailRow('SSM', fmtKg(ssmKg));
+    rows += detailRow('120N / 150N', fmtKg(n120Kg));
+  }
+  document.getElementById('m-detail-rows').innerHTML = rows;
+  document.getElementById('m-detail').style.display = 'block';
 }
 
 // ═══════════════════════════════════════════════
