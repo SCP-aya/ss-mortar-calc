@@ -231,13 +231,8 @@ header p  { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; }
   line-height: 2.5;
 }
 
-/* 小数点袋数 / kg → 小さく */
-.bags-small {
-  font-size: 0.66rem;
-  color: rgba(255,255,255,0.55);
-  margin-top: 7px;
-  line-height: 1.5;
-}
+/* 小数点袋数 / kg → 非表示 */
+.bags-small { display: none; }
 
 /* ===== DETAIL CARD ===== */
 .detail-card {
@@ -822,29 +817,6 @@ function calcPillar() {
   document.getElementById('p-ssm-box').className  = 'result-item' + (!useSsm ? ' na' : '');
   document.getElementById('p-120n-box').className = 'result-item' + (!useN   ? ' na' : '');
 
-  // 内訳カード
-  const hasMj  = jw > 0 && jh > 0 && jt > 0;
-  const detDiv = document.getElementById('p-detail');
-  if (useSsm || use120n) {
-    let rows = '';
-    // 継手分
-    rows += detailSection('継手');
-    if (useSsm)  rows += detailRow('SSM',  fmtKg(jSsm));
-    if (use120n) rows += detailRow('120N', fmtKg(j120n));
-    // 目地分
-    rows += detailSection('目地');
-    rows += detailRow('体積', fmtM3(volM3));
-    if (useSsm)  rows += detailRow('SSM',  fmtKg(mjSsm));
-    if (use120n) rows += detailRow('120N', fmtKg(mj120n));
-    // 合計
-    rows += detailSection('合計');
-    if (useSsm)  rows += detailRow('SSM',  fmtKg(totSsmKg));
-    if (use120n) rows += detailRow('120N', fmtKg(tot120nKg));
-    document.getElementById('p-detail-rows').innerHTML = rows;
-    detDiv.style.display = 'block';
-  } else {
-    detDiv.style.display = 'none';
-  }
 }
 
 // ═══════════════════════════════════════════════
@@ -889,26 +861,6 @@ function calcRenkon() {
   setResult('r-ssm-big',  'r-ssm-small',  ssmBags,  totSsmKg,  true);
   setResult('r-120n-big', 'r-120n-small', n120Bags, tot120nKg, true);
 
-  // 内訳カード
-  const hasMj = jw > 0 && jh > 0 && jt > 0;
-  const sheathVol = grossPerSheath + totalNet; // 計算に使用した体積
-  let rows = '';
-  // シース分
-  rows += detailSection('シース');
-  rows += detailRow('体積', fmtM3(sheathVol));
-  rows += detailRow('SSM',  fmtKg(sheathSsm));
-  rows += detailRow('120N', fmtKg(sheath120n));
-  // 目地分
-  rows += detailSection('目地');
-  rows += detailRow('体積', fmtM3(volM3));
-  rows += detailRow('SSM',  fmtKg(mjSsm));
-  rows += detailRow('120N', fmtKg(mj120n));
-  // 合計
-  rows += detailSection('合計');
-  rows += detailRow('SSM',  fmtKg(totSsmKg));
-  rows += detailRow('120N', fmtKg(tot120nKg));
-  document.getElementById('r-detail-rows').innerHTML = rows;
-  document.getElementById('r-detail').style.display = 'block';
 }
 
 // ═══════════════════════════════════════════════
@@ -946,20 +898,6 @@ function calcMoji() {
 
   setResult('m-ssm-big',  'm-ssm-small',  ssmBags,  ssmKg,  true);
   setResult('m-120n-big', 'm-120n-small', n120Bags, n120Kg, true);
-
-  let rows = '';
-  rows += detailSection('目地（1ヵ所）');
-  rows += detailRow('体積', fmtM3(volM3));
-  rows += detailRow('SSM', fmtKg(volM3 * 2100));
-  rows += detailRow('120N / 150N', fmtKg(volM3 * 2325));
-  if (count > 1) {
-    rows += detailSection('合計（' + count + 'ヵ所）');
-    rows += detailRow('体積', fmtM3(totVol));
-    rows += detailRow('SSM', fmtKg(ssmKg));
-    rows += detailRow('120N / 150N', fmtKg(n120Kg));
-  }
-  document.getElementById('m-detail-rows').innerHTML = rows;
-  document.getElementById('m-detail').style.display = 'block';
 }
 
 // ═══════════════════════════════════════════════
